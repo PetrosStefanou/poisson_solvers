@@ -1,0 +1,5 @@
+#ignore _pycache_ folder
+__pycache__/
+
+#ignore graphs folder
+graphs/
