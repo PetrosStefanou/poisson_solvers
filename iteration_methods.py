@@ -61,7 +61,7 @@ def numpy_jacobi(matrix, source, grid, init_guess=None, boundary=((0,0),(0,0)), 
     k = 0
     rel_diff = tol +1
     conv_hist = []
-    
+        
     #iteration loop
     while k < kmax and rel_diff > tol:
 
