@@ -61,6 +61,7 @@ def numpy_jacobi(matrix, source, grid, init_guess=None, boundary=((0,0),(0,0)), 
     k = 0
     rel_diff = tol +1
     conv_hist = []
+    conv_hist_max = np.zeros(kmax)
         
     #iteration loop
     while k < kmax and rel_diff > tol:
@@ -74,15 +75,17 @@ def numpy_jacobi(matrix, source, grid, init_guess=None, boundary=((0,0),(0,0)), 
         #stopping criterion
         
         rel_diff = la.norm(u_next - u)/la.norm(u)
-        
+        rel_diff_max = la.norm(u_next - u, ord=np.inf)/la.norm(u, ord=np.inf)
+
         conv_hist.append(rel_diff)
+        conv_hist_max[k] = rel_diff_max
 
         k += 1
 
         #update the value of the solution
         u = u_next
 
-    return u, k, rel_diff, np.array(conv_hist)
+    return u, k, rel_diff, np.array(conv_hist), conv_hist_max
 
 #---------------------------------------------------------------
 #---------------------------------------------------------------
@@ -146,6 +149,7 @@ def slow_jacobi(matrix, source, grid, init_guess = None, boundary=((0,0),(0,0)),
     rel_diff = tol + 1
     k = 0
     conv_hist = []
+    conv_hist_max = np.zeros(kmax)
 
     #iteration loop using nested loops.
     while  k < kmax and rel_diff > tol:
@@ -160,8 +164,10 @@ def slow_jacobi(matrix, source, grid, init_guess = None, boundary=((0,0),(0,0)),
 
         
         rel_diff = la.norm(u_next - u)/la.norm(u)
+        rel_diff_max = la.norm(u_next - u, ord=np.inf)/la.norm(u, ord=np.inf)
         
         conv_hist.append(rel_diff)
+        conv_hist_max[k] = rel_diff_max
         
         # L2norm = la.norm(u_temp - u, 2)
         # maxnorm = la.norm(u_temp - u, np.inf)
@@ -172,7 +178,7 @@ def slow_jacobi(matrix, source, grid, init_guess = None, boundary=((0,0),(0,0)),
         u = u_next
         k += 1
         # print(u, '\n')
-    return u, k, rel_diff, np.array(conv_hist)
+    return u, k, rel_diff, np.array(conv_hist), conv_hist_max
 
 
 #---------------------------------------------------------------
@@ -204,7 +210,8 @@ def SOR(matrix, source, grid, init_guess=None, boundary=((0, 0), (0,0)), toleran
     k = 0
     rel_diff = tol + 1
     conv_hist = []
-       
+
+
     #iteration loop using nested loops.
     while  k < kmax and rel_diff > tol:
 
@@ -219,8 +226,10 @@ def SOR(matrix, source, grid, init_guess=None, boundary=((0, 0), (0,0)), toleran
         
 
         rel_diff = la.norm(u_next-u)/la.norm(u)
+        
         conv_hist.append(rel_diff)
+        
         u = u_next
         k += 1
 
-    return u, k, rel_diff, conv_hist
+    return u, k, rel_diff, conv_hist #, conv_hist_max
