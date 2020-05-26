@@ -5,19 +5,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 
-def u_analytical(x, y):
 
-    uan = np.sin(np.pi*x)*np.sin(np.pi*y) + x
-
-    return uan
-
-#-------------------------------------------------------
-#The source term of the equation
-def source(x, y):
-
-    f = -2*np.pi**2*np.sin(np.pi*x)*np.sin(np.pi*y)
-
-    return f
 
 #-------------------------------------------------------
 # 2d cartesian cooedinates grid
