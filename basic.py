@@ -72,7 +72,7 @@ def plot(x, y, u, u_an=None, conv_hist=None):
         ax1.set_ylabel('$\\frac{||u^{(k+1)}-u^{(k)}||_2}{||u^{(k)}||_2}$', rotation='horizontal')
 
 
-        ax1.set_title('$Convergence rate$')
+        ax1.set_title('$Convergence \ rate$')
 
         ax1.set_yscale('log')
     
