@@ -38,7 +38,7 @@ def polar_grid(r_I=0., r_F=1., Nr=100, th_I=0, th_F=2*np.pi, Nth=100):
     return R, Th, r, th, dr, dth
 
 
-def plot(x, y, u, u_an=None, conv_hist=None):
+def plot(x, y, u, u_an=None, conv_hist=None, title=''):
 
     #Creat 3D figure
     fig = plt.figure()
@@ -58,7 +58,7 @@ def plot(x, y, u, u_an=None, conv_hist=None):
     #Make plot nice and beautifull
     ax.set_xlabel('x')
     ax.set_ylabel('y')
-    ax.set_title('$u = \sin\pi x \sin\pi y + x$')
+    ax.set_title(title)
 
     ax.legend(loc = 2)
 
