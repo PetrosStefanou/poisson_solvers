@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
-
+from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 
 
 #-------------------------------------------------------
@@ -38,14 +38,24 @@ def polar_grid(r_I=0., r_F=1., Nr=100, th_I=0, th_F=2*np.pi, Nth=100):
     return R, Th, r, th, dr, dth
 
 
-def plot(x, y, u, u_an=None, conv_hist=None, title=''):
+def plot(x, y, u, u1=None, u2=None, u_an=None, conv_hist=None, contour=True, plot_result=True, title=''):
 
     #Creat 3D figure
     fig = plt.figure()
     ax = fig.add_subplot(111, projection = '3d')
 
     #Scatter plot of  u
-    scat = ax.scatter(x, y, u, c = 'r', label = 'numerical', alpha = 1)
+    if plot_result:
+        
+        scat = ax.scatter(x, y, u, c = 'r', label = 'numerical', alpha = 1)
+
+        #plot more numerical results
+        if u1 is not None:
+            scat1 = ax.scatter(x, y, u1, c = 'r', label = 'numerical', alpha = 1)
+
+        if u2 is not None:
+            scat2 = ax.scatter(x, y, u2, c = 'r', label = 'numerical', alpha = 1)
+    
     
     #Surface plot of analytical solution if provided
     if u_an is not None:
@@ -75,6 +85,20 @@ def plot(x, y, u, u_an=None, conv_hist=None, title=''):
         ax1.set_title('$Convergence \ rate$')
 
         ax1.set_yscale('log')
+
+    if contour:
+
+        # ax.contour3D(r*np.cos(th), r*np.sin(th), u)
+
+        cset = ax.contour(x, y, u, 20, zdir='z', offset=0, cmap=cm.coolwarm)
+
+        #plot more numerical results
+        if u1 is not None:
+            cset1 = ax.contour(x, y, u1, 30, zdir='z', offset=0, cmap=cm.viridis)
+
+        if u2 is not None:
+            cset2 = ax.contour(x, y, u2, 30, zdir='z', offset=0, cmap=cm.coolwarm)
+
     
 
     plt.show()
