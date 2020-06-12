@@ -94,10 +94,10 @@ def plot(x, y, u, u1=None, u2=None, u_an=None, conv_hist=None, contour=True, plo
 
         #plot more numerical results
         if u1 is not None:
-            cset1 = ax.contour(x, y, u1, 30, zdir='z', offset=0, cmap=cm.viridis)
+            cset1 = ax.contour(x, y, u1, 20, zdir='z', offset=0, cmap=cm.viridis)
 
         if u2 is not None:
-            cset2 = ax.contour(x, y, u2, 30, zdir='z', offset=0, cmap=cm.coolwarm)
+            cset2 = ax.contour(x, y, u2, 20, zdir='z', offset=0, cmap=cm.coolwarm)
 
     
 
