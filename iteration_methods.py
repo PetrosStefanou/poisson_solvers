@@ -348,3 +348,218 @@ def SOR_polar(matrix, source, grid, init_guess=None, boundary=((0, 0), (0,0)), t
         k += 1
 
     return u, k, rel_diff, conv_hist
+
+
+#---------------------------------------------------------------
+#---------------------------------------------------------------
+#---------------------------------------------------------------
+
+def grad_shaf_solver(matrix, source_term, grid, init_guess=None, 
+                    boundary=((0, 0), (0,0)), tolerance=1.e-8, 
+                    itermax=1000, omega=1.5, params=(1, 0, 0.5), 
+                    u_analytical=None):
+
+    #read the input
+    M, u0, B, tol, kmax, uan = matrix, init_guess, boundary, tolerance, itermax, u_analytical
+
+    #assign the grid
+    r, th = grid
+
+    R, TH = r[0], th[:,0]
+
+    Nr, Nth = r.shape[1]-1, th.shape[0]-1
+
+    dr, dth = (r[0, -1] - r[0, 0])/Nr, (th[-1, 0] - th[0, 0])/Nth
+
+    
+    #assign the initial guess
+    if init_guess is None:
+
+        u0 = np.ones_like(r)
+
+    #assign dirichlet boundary conditions
+    u0[1:-1, 0] = B[0][0][1:-1]                               
+    # u0[:, -1] = B[0][1]
+    u0[0, :] = B[1][0]
+    u0[-1, :] = B[1][1]
+    
+    #assign extra parameters
+    sigma, s, uc = params
+
+    #assign the source term
+    f = np.zeros_like(r)
+    for j in range(1, Nth):
+            for i in range(1, Nr):
+                
+                #simulate the effect of the heaviside step function
+                if u0[j,i] >= uc:
+
+                    f[j,i] = source_term(r[i], th[j], u0[j,i], params)#*np.heaviside(u0-uc, 0)
+                else:
+                    
+                    f[j,i] = 0.
+
+
+    #initial values before the iteration loop starts
+    u = u0.copy()
+    k = 0
+    rel_diff = tol + 1
+    conv_hist = []
+    # err_to_an = []
+    
+
+    #iteration loop 
+    while  k < kmax and rel_diff > tol:    
+        
+        # print the iteration number to keep track of the solver
+        # if np.mod(k, 200) == 0:
+
+        #     print(k)
+
+        u_next = u.copy()
+
+        
+        
+        #calculate the solution in the kth step
+        for j in range(1, Nth):
+            for i in range(1, Nr+1):
+                
+                #Update the source term if it is a function of the solution
+                #simulate the effect of the heaviside step function
+                if u[j,i] >= uc:
+
+                    f[j,i] = source_term(r[i], th[j], u[j,i], params)
+                else:
+                    
+                    f[j,i] = 0.
+
+                #Robin boundary conditions at the outermost radius
+                if i == Nr:
+
+                    u_next[j,i] = (1-omega)*u[j,i] + omega/((2+2*dr/R[i])*R[i]**2*dth**2 + 2*dr**2)*(R[i]**2*dth**2*(2*u_next[j, i-1])                                                                                        + dr**2*(u[j+1,i]*(1-dth/(2*np.tan(TH[j]))) + 
+                                                                                        u_next[j-1,i]*(1 + dth/(2*np.tan(TH[j])))) 
+                                                                                        -f[j,i]*dr**2*dth**2*R[i]**2)
+                    
+                else:
+
+                    u_next[j,i] = (1-omega)*u[j,i] + omega/(2*(R[i]**2*dth**2 + dr**2))*(R[i]**2*dth**2*(u[j,i+1] + u_next[j, i-1]) + 
+                                                                                        dr**2*(u[j+1,i]*(1-dth/(2*np.tan(TH[j]))) + 
+                                                                                        u_next[j-1,i]*(1 + dth/(2*np.tan(TH[j])))) 
+                                                                                        -f[j,i]*dr**2*dth**2*R[i]**2)
+                
+        #calculate the L2 norm of the relative difference between the two last iterations   
+        rel_diff = la.norm(u_next-u)/la.norm(u)
+        
+        #Save the convergence history
+        conv_hist.append(rel_diff)
+        
+        #update solution for next iteration
+        u = u_next
+
+        k += 1
+
+    return u, k, rel_diff, conv_hist
+
+
+#---------------------------------------------------------------
+#---------------------------------------------------------------
+#---------------------------------------------------------------
+
+def gs_comp_solver(matrix, source_term, grid, init_guess=None, 
+                    boundary=((0, 0), (0,0)), tolerance=1.e-8, 
+                    itermax=1000, omega=1.5, params=(1, 0, 0.5)):
+
+    #read the input
+    M, u0, B, tol, kmax = matrix, init_guess, boundary, tolerance, itermax
+
+    #assign the grid
+    q, th = grid
+
+    Q, TH = q[0], th[:,0]
+
+    Nq, Nth = q.shape[1]-1, th.shape[0]-1
+
+    dq, dth = (q[0, -1] - q[0, 0])/Nq, (th[-1, 0] - th[0, 0])/Nth
+ 
+    
+    
+    #assign the initial guess
+    if init_guess is None:
+
+        u0 = np.ones_like(q)
+
+    #assign dirichlet boundary conditions
+    u0[:, 0] = B[0][0]                          #q_I boundary              
+    u0[:, -1] = B[0][1]                         #q_F boundary
+    u0[0, :] = B[1][0]                          #th_I boundary
+    u0[-1, :] = B[1][1]                         #th_F boundary
+    
+    #assign extra parameters
+    sigma, s, uc = params
+
+    R = Q[-1]           #The radius of the star
+
+    #assign the source term
+    f = np.zeros_like(q)
+    for j in range(1, Nth):
+            for i in range(1, Nq):
+                
+                #simulate the effect of the heaviside step function
+                if u0[j,i] >= uc:
+
+                    f[j,i] = source_term(q[i], th[j], u0[j,i], params)
+                else:
+                    
+                    f[j,i] = 0.
+
+
+    #initial values before the iteration loop starts
+    u = u0.copy()
+    k = 0
+    rel_diff = tol + 1
+    conv_hist = []
+
+    
+
+    #iteration loop 
+    while  k < kmax and rel_diff > tol:    
+        
+        # print the iteration number to keep track of the solver
+        # if np.mod(k, 200) == 0:
+
+        #     print(k)
+
+        u_next = u.copy()
+      
+        #calculate the solution in the kth step
+        for j in range(1, Nth):
+            for i in range(1, Nq):
+                
+                #Update the source term if it is a function of the solution
+                #simulate the effect of the heaviside step function
+                if u[j,i] >= uc:
+
+                    f[j,i] = source_term(q[i], th[j], u[j,i], params)
+                else:
+                    
+                    f[j,i] = 0.
+
+
+                #update the solution using SOR method
+                u_next[j,i] = (1-omega)*u[j,i] + omega/(2*(Q[i]**2*dth**2 + dq**2))*  \
+                              (dth**2*Q[i]*(u[j,i+1]*(Q[i]+dq) + u_next[j,i-1]*(Q[i]-dq)) 
+                               +dq**2*(u[j+1,i]*(1-dth/(2*np.tan(TH[j]))) + u_next[j-1,i]*(1+dth/(2*np.tan(TH[j])))) 
+                               -(dq*dth*R**2/Q[i])**2*f[j,i])
+                
+        #calculate the L2 norm of the relative difference between the two last iterations   
+        rel_diff = la.norm(u_next-u)/la.norm(u)
+        
+        #Save the convergence history
+        conv_hist.append(rel_diff)
+
+        #update solution for next iteration
+        u = u_next
+
+        k += 1
+
+    return u, k, rel_diff, conv_hist
