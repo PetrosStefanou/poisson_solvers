@@ -480,8 +480,8 @@ def gs_comp_solver(matrix, source_term, grid, init_guess=None,
     Nq, Nth = q.shape[1]-1, th.shape[0]-1
 
     dq, dth = (q[0, -1] - q[0, 0])/Nq, (th[-1, 0] - th[0, 0])/Nth
- 
     
+    print(Nq, dq)
     
     #assign the initial guess
     if init_guess is None:
